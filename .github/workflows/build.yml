@@ -24,6 +24,12 @@ jobs:
           sudo apt-get install -y ccache git libffi-dev libssl-dev python3-dev zip unzip openjdk-17-jdk aidl autoconf libtool pkg-config zlib1g-dev libncurses6 libtinfo6 cmake
           pip install "cython<3.0.0" buildozer kivy
 
+      - name: Accept Android SDK Licenses Automatically
+        run: |
+          mkdir -p ~/.android
+          touch ~/.android/repositories.cfg
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+
       - name: Generate buildozer.spec if not exists
         run: |
           if [ ! -f buildozer.spec ]; then
