@@ -18,17 +18,18 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Install Buildozer and Dependencies
+      - name: Install System Dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y ccache git libffi-dev libssl-dev python3-dev zip unzip openjdk-17-jdk aidl autoconf libtool pkg-config zlib1g-dev libncurses6 libtinfo6 cmake
           pip install "cython<3.0.0" buildozer kivy
 
-      - name: Accept Android SDK Licenses Automatically
+      - name: Set up Android SDK & Accept All Licenses
+        uses: android-actions/setup-android@v3
+
+      - name: Accept All Android Licenses
         run: |
-          mkdir -p ~/.android
-          touch ~/.android/repositories.cfg
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          yes | sdkmanager --licenses || true
 
       - name: Generate buildozer.spec if not exists
         run: |
@@ -37,6 +38,7 @@ jobs:
           fi
           sed -i 's/android.accept_sdk_licenses = False/android.accept_sdk_licenses = True/g' buildozer.spec
           sed -i 's/# android.ndk_version = .*/android.ndk_version = 25b/g' buildozer.spec
+          sed -i 's/# android.api = .*/android.api = 33/g' buildozer.spec
 
       - name: Build APK with Buildozer
         run: |
