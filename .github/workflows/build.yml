@@ -32,13 +32,19 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: bin/*.apk
+          path: "**/*.apk"
 
       - name: Send APK to Telegram
-        if: success()
+        if: always()
         run: |
-          APK_PATH=$(find bin -name "*.apk" | head -n 1)
-          curl -F chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
-               -F document=@"$APK_PATH" \
-               -F caption="✅ **APK faylingiz muvaffaqiyatli tayyorlandi!**" \
-               https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendDocument
+          APK_PATH=$(find . -name "*.apk" | head -n 1)
+          if [ -n "$APK_PATH" ]; then
+            echo "Found APK at $APK_PATH"
+            curl -F chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
+                 -F document=@"$APK_PATH" \
+                 -F caption="✅ **APK faylingiz muvaffaqiyatli tayyorlandi!**" \
+                 https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendDocument
+          else
+            echo "No APK file found."
+            exit 1
+          fi
