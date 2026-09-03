@@ -11,67 +11,85 @@ class CalculatorApp(App):
         
         main_layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
         
+        # Displey ekrani
         self.display = TextInput(
             multiline=False,
             readonly=True,
             halign='right',
             font_size=45,
-            size_hint_y=0.25,
-            background_color=(0.95, 0.95, 0.95, 1),
-            foreground_color=(0, 0, 0, 1)
+            background_color=(0.15, 0.15, 0.15, 1),
+            foreground_color=(1, 1, 1, 1),
+            size_hint=(1, 0.25)
         )
         main_layout.add_widget(self.display)
         
+        # Tugmalar joylashuvi
         buttons = [
-            ['C', '(', ')', '/'],
+            ['C', 'DEL', '%', '/'],
             ['7', '8', '9', '*'],
             ['4', '5', '6', '-'],
             ['1', '2', '3', '+'],
-            ['0', '.', 'DEL', '=']
+            ['+/-', '0', '.', '=']
         ]
         
-        grid = GridLayout(cols=4, spacing=8)
+        grid_layout = GridLayout(cols=4, spacing=8, size_hint=(1, 0.75))
         
         for row in buttons:
             for label in row:
-                if label in ['/', '*', '-', '+', '=']:
-                    bg_color = (0.2, 0.6, 0.9, 1)
-                elif label in ['C', 'DEL']:
-                    bg_color = (0.9, 0.3, 0.3, 1)
-                else:
-                    bg_color = (0.25, 0.25, 0.25, 1)
-                    
                 button = Button(
                     text=label,
-                    font_size=30,
+                    font_size=28,
                     background_normal='',
-                    background_color=bg_color,
-                    color=(1, 1, 1, 1)
+                    background_color=self.get_button_color(label)
                 )
                 button.bind(on_press=self.on_button_press)
-                grid.add_widget(button)
+                grid_layout.add_widget(button)
                 
-        main_layout.add_widget(grid)
+        main_layout.add_widget(grid_layout)
         return main_layout
+
+    def get_button_color(self, label):
+        if label in ['/', '*', '-', '+', '=']:
+            return (0.95, 0.55, 0.0, 1)  # To'q sariq (operatsiyalar)
+        elif label in ['C', 'DEL', '%', '+/-']:
+            return (0.5, 0.5, 0.5, 1)   # Kulrang (maxsus tugmalar)
+        else:
+            return (0.25, 0.25, 0.25, 1) # To'q kulrang (raqamlar)
 
     def on_button_press(self, instance):
         text = instance.text
-        
+        current = self.display.text
+
+        if current == "Xato":
+            current = ""
+
         if text == 'C':
-            self.display.text = ''
+            self.display.text = ""
         elif text == 'DEL':
-            self.display.text = self.display.text[:-1]
+            self.display.text = current[:-1]
         elif text == '=':
-            try:
-                expression = self.display.text
-                result = str(eval(expression))
-                self.display.text = result
-            except Exception:
-                self.display.text = 'Xato'
+            if current:
+                try:
+                    # Amallarni hisoblash
+                    result = str(eval(current))
+                    if result.endswith('.0'):
+                        result = result[:-2]
+                    self.display.text = result
+                except Exception:
+                    self.display.text = "Xato"
+        elif text == '+/-':
+            if current:
+                if current.startswith('-'):
+                    self.display.text = current[1:]
+                else:
+                    self.display.text = '-' + current
         else:
-            if self.display.text == 'Xato':
-                self.display.text = ''
-            self.display.text += text
+            # Ketma-ket operatorlar kiritilishini oldini olish
+            operators = ['/', '*', '-', '+', '%']
+            if current and current[-1] in operators and text in operators:
+                self.display.text = current[:-1] + text
+            else:
+                self.display.text = current + text
 
 
 if __name__ == '__main__':
