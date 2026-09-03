@@ -3,99 +3,100 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.button import Button
 from kivy.uix.textinput import TextInput
+from kivy.core.window import Window
 
+# Mobil ekran ko'rinishi uchun foni to'q rangga o'tkazamiz
+Window.clearcolor = (0.1, 0.1, 0.1, 1)
 
 class CalculatorApp(App):
     def build(self):
         self.title = 'Kalkulyator'
         
-        main_layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
+        # Asosiy konteyner
+        main_layout = BoxLayout(orientation='vertical', padding=15, spacing=10)
         
-        self.solution = TextInput(
+        # Natija va kiritish ekrani
+        self.display = TextInput(
             multiline=False,
             readonly=True,
             halign='right',
-            font_size=45,
+            font_size=48,
             size_hint=(1, 0.25),
-            background_color=(0.12, 0.12, 0.12, 1),
-            foreground_color=(1, 1, 1, 1)
+            background_color=(0.18, 0.18, 0.18, 1),
+            foreground_color=(1, 1, 1, 1),
+            padding=[10, 20, 10, 10]
         )
-        main_layout.add_widget(self.solution)
+        main_layout.add_widget(self.display)
         
+        # Tugmalar ro'yxati
         buttons = [
-            ['C', '⌫', '%', '/'],
-            ['7', '8', '9', '*'],
+            ['C', '()', '%', '÷'],
+            ['7', '8', '9', '×'],
             ['4', '5', '6', '-'],
             ['1', '2', '3', '+'],
-            ['+/-', '0', '.', '=']
+            ['⌫', '0', '.', '=']
         ]
         
-        grid_layout = GridLayout(cols=4, spacing=8, size_hint=(1, 0.75))
+        # Tugmalar tori
+        grid = GridLayout(cols=4, spacing=10, size_hint=(1, 0.75))
         
         for row in buttons:
             for label in row:
-                if label in ['/', '*', '-', '+', '=']:
-                    bg_color = (0.95, 0.5, 0.08, 1)
-                elif label in ['C', '⌫', '%', '+/-']:
-                    bg_color = (0.5, 0.5, 0.5, 1)
+                # Tugmalar rangini ajratish
+                if label in ['÷', '×', '-', '+', '=']:
+                    bg_color = (0.95, 0.53, 0.08, 1)  # Olovrang (operatsiyalar)
+                elif label in ['C', '()', '%', '⌫']:
+                    bg_color = (0.3, 0.3, 0.3, 1)     # To'q kulrang (maxsus)
                 else:
-                    bg_color = (0.25, 0.25, 0.25, 1)
-                    
-                button = Button(
+                    bg_color = (0.2, 0.2, 0.2, 1)     # Raqamlar
+                
+                btn = Button(
                     text=label,
                     font_size=28,
                     background_normal='',
                     background_color=bg_color,
                     color=(1, 1, 1, 1)
                 )
-                button.bind(on_press=self.on_button_press)
-                grid_layout.add_widget(button)
+                btn.bind(on_press=self.on_button_click)
+                grid.add_widget(btn)
                 
-        main_layout.add_widget(grid_layout)
+        main_layout.add_widget(grid)
         return main_layout
 
-    def on_button_press(self, instance):
-        current = self.solution.text
-        button_text = instance.text
+    def on_button_click(self, instance):
+        text = instance.text
+        current = self.display.text
 
         if current == 'Xato':
             current = ''
 
-        if button_text == 'C':
-            self.solution.text = ''
-        elif button_text == '⌫':
-            self.solution.text = current[:-1]
-        elif button_text == '=':
+        if text == 'C':
+            self.display.text = ''
+        elif text == '⌫':
+            self.display.text = current[:-1]
+        elif text == '=':
             if current:
                 try:
-                    res = str(eval(current))
-                    if res.endswith('.0'):
-                        res = res[:-2]
-                    self.solution.text = res
+                    # Matematik belgilarni Python belgilari bilan almashtirish
+                    expr = current.replace('÷', '/').replace('×', '*').replace('%', '/100')
+                    result = str(eval(expr))
+                    
+                    # Natija butun son bo'lsa, nuqta va nolni olib tashlash
+                    if result.endswith('.0'):
+                        result = result[:-2]
+                        
+                    self.display.text = result
                 except Exception:
-                    self.solution.text = 'Xato'
-        elif button_text == '+/-':
-            if current:
-                if current.startswith('-'):
-                    self.solution.text = current[1:]
-                else:
-                    self.solution.text = '-' + current
-        elif button_text == '%':
-            if current:
-                try:
-                    val = float(eval(current)) / 100
-                    res = str(val)
-                    if res.endswith('.0'):
-                        res = res[:-2]
-                    self.solution.text = res
-                except Exception:
-                    self.solution.text = 'Xato'
+                    self.display.text = 'Xato'
+        elif text == '()':
+            open_count = current.count('(')
+            close_count = current.count(')')
+            if open_count == close_count or current.endswith(('+', '-', '×', '÷')):
+                self.display.text += '('
+            else:
+                self.display.text += ')'
         else:
-            operators = ['/', '*', '-', '+', '.']
-            if current and button_text in operators and current[-1] in operators:
-                return
-            self.solution.text = current + button_text
-
+            self.display.text += text
 
 if __name__ == '__main__':
     CalculatorApp().run()
