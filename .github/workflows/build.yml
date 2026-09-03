@@ -21,7 +21,7 @@ jobs:
       - name: Install Buildozer and Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y ccache git libffi-dev libssl-dev python3-dev zip unzip openjdk-17-jdk aidl autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake
+          sudo apt-get install -y ccache git libffi-dev libssl-dev python3-dev zip unzip openjdk-17-jdk aidl autoconf libtool pkg-config zlib1g-dev libncurses6 libtinfo6 cmake
           pip install "cython<3.0.0" buildozer kivy
 
       - name: Generate buildozer.spec if not exists
