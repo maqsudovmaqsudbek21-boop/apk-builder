@@ -22,29 +22,35 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ccache git libffi-dev libssl-dev python3-dev zip unzip openjdk-17-jdk
-          pip install buildozer cython
+          pip install "cython<3.0.0" buildozer kivy
+
+      - name: Generate buildozer.spec if not exists
+        run: |
+          if [ ! -f buildozer.spec ]; then
+            buildozer init
+            sed -i 's/requirements = python3,kivy/requirements = python3,kivy/g' buildozer.spec
+          fi
 
       - name: Build APK with Buildozer
         run: |
-          yes | buildozer -v android debug || true
+          buildozer -v android debug
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: "**/*.apk"
+          path: bin/*.apk
 
       - name: Send APK to Telegram
-        if: always()
+        if: success()
         run: |
-          APK_PATH=$(find . -name "*.apk" | head -n 1)
+          APK_PATH=$(find bin -name "*.apk" | head -n 1)
           if [ -n "$APK_PATH" ]; then
-            echo "Found APK at $APK_PATH"
             curl -F chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
                  -F document=@"$APK_PATH" \
                  -F caption="✅ **APK faylingiz muvaffaqiyatli tayyorlandi!**" \
                  https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendDocument
           else
-            echo "No APK file found."
+            echo "No APK file found in bin/"
             exit 1
           fi
