@@ -5,98 +5,94 @@ from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.core.window import Window
 
+Window.clearcolor = (0.1, 0.1, 0.1, 1)
+
 class CalculatorApp(App):
     def build(self):
-        self.title = 'Kalkulyator'
+        self.title = "Kalkulyator"
         
-        main_layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
+        main_layout = BoxLayout(orientation="vertical", spacing=10, padding=15)
         
         self.display = Label(
-            text='0',
-            font_size='48sp',
-            halign='right',
-            valign='middle',
+            text="0",
+            font_size="48sp",
+            halign="right",
+            valign="center",
             size_hint=(1, 0.25),
             color=(1, 1, 1, 1)
         )
         self.display.bind(size=self.display.setter('text_size'))
         main_layout.add_widget(self.display)
         
-        grid = GridLayout(cols=4, spacing=8, size_hint=(1, 0.75))
+        buttons_layout = GridLayout(cols=4, spacing=8, size_hint=(1, 0.75))
         
         buttons = [
-            'C', 'DEL', '%', '/',
-            '7', '8', '9', '*',
-            '4', '5', '6', '-',
-            '1', '2', '3', '+',
-            '+/-', '0', '.', '='
+            ("C", (0.8, 0.2, 0.2, 1)),
+            ("DEL", (0.8, 0.4, 0.1, 1)),
+            ("%", (0.3, 0.3, 0.3, 1)),
+            ("÷", (0.2, 0.6, 0.9, 1)),
+            ("7", (0.2, 0.2, 0.2, 1)),
+            ("8", (0.2, 0.2, 0.2, 1)),
+            ("9", (0.2, 0.2, 0.2, 1)),
+            ("×", (0.2, 0.6, 0.9, 1)),
+            ("4", (0.2, 0.2, 0.2, 1)),
+            ("5", (0.2, 0.2, 0.2, 1)),
+            ("6", (0.2, 0.2, 0.2, 1)),
+            ("-", (0.2, 0.6, 0.9, 1)),
+            ("1", (0.2, 0.2, 0.2, 1)),
+            ("2", (0.2, 0.2, 0.2, 1)),
+            ("3", (0.2, 0.2, 0.2, 1)),
+            ("+", (0.2, 0.6, 0.9, 1)),
+            ("00", (0.2, 0.2, 0.2, 1)),
+            ("0", (0.2, 0.2, 0.2, 1)),
+            (".", (0.2, 0.2, 0.2, 1)),
+            ("=", (0.1, 0.7, 0.3, 1))
         ]
         
-        for btn_text in buttons:
+        for text, color in buttons:
             btn = Button(
-                text=btn_text,
-                font_size='24sp',
-                background_normal='',
-                background_color=self.get_btn_color(btn_text)
+                text=text,
+                font_size="28sp",
+                background_normal="",
+                background_color=color,
+                bold=True
             )
             btn.bind(on_press=self.on_button_press)
-            grid.add_widget(btn)
+            buttons_layout.add_widget(btn)
             
-        main_layout.add_widget(grid)
+        main_layout.add_widget(buttons_layout)
         return main_layout
-
-    def get_btn_color(self, text):
-        if text in ['/', '*', '-', '+', '=']:
-            return (0.9, 0.5, 0.1, 1)
-        elif text in ['C', 'DEL', '%', '+/-']:
-            return (0.5, 0.5, 0.5, 1)
-        else:
-            return (0.2, 0.2, 0.2, 1)
 
     def on_button_press(self, instance):
         text = instance.text
         current = self.display.text
 
-        if text == 'C':
-            self.display.text = '0'
-        elif text == 'DEL':
-            if len(current) > 1 and current != 'Xato':
-                self.display.text = current[:-1]
+        if text == "C":
+            self.display.text = "0"
+        elif text == "DEL":
+            if current in ["Xato", "0"] or len(current) == 1:
+                self.display.text = "0"
             else:
-                self.display.text = '0'
-        elif text == '=':
+                self.display.text = current[:-1]
+        elif text == "=":
             try:
-                result = str(eval(current))
-                if result.endswith('.0'):
+                expr = current.replace("×", "*").replace("÷", "/")
+                result = str(eval(expr))
+                if result.endswith(".0"):
                     result = result[:-2]
                 self.display.text = result
             except Exception:
-                self.display.text = 'Xato'
-        elif text == '+/-':
-            if current != '0' and current != 'Xato':
-                if current.startswith('-'):
-                    self.display.text = current[1:]
-                else:
-                    self.display.text = '-' + current
-        elif text == '%':
-            try:
-                val = float(current) / 100
-                self.display.text = str(val)
-            except Exception:
-                self.display.text = 'Xato'
+                self.display.text = "Xato"
         else:
-            if current == '0' or current == 'Xato':
-                if text in ['/', '*', '+']:
-                    self.display.text = '0' + text
-                elif text == '.':
-                    self.display.text = '0.'
+            if current in ["0", "Xato"]:
+                if text in ["+", "-", "×", "÷", "%"]:
+                    self.display.text = "0" + text
+                elif text == ".":
+                    self.display.text = "0."
                 else:
                     self.display.text = text
             else:
-                if text in ['/', '*', '-', '+'] and current[-1] in ['/', '*', '-', '+']:
-                    self.display.text = current[:-1] + text
-                else:
-                    self.display.text += text
+                self.display.text += text
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     CalculatorApp().run()
