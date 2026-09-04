@@ -21,17 +21,24 @@ jobs:
       - name: Install System Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y ccache git libffi-dev libssl-dev python3-dev zip unzip openjdk-17-jdk aidl autoconf libtool pkg-config zlib1g-dev libncurses6 libtinfo6 cmake
+          sudo apt-get install -y ccache git libffi-dev libssl-dev python3-dev zip unzip openjdk-17-jdk aidl autoconf libtool pkg-config zlib1g-dev libncurses6 libtinfo6 cmake wget
           pip install "cython<3.0.0" buildozer kivy
 
-      - name: Set up Android SDK and Accept Licenses
-        uses: android-actions/setup-android@v3
-
-      - name: Setup Buildozer SDK Licenses
+      - name: Setup Android Commandline Tools & SDK
         run: |
-          mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
-          yes | sdkmanager --licenses || true
-          cp -r $ANDROID_HOME/licenses/* ~/.buildozer/android/platform/android-sdk/licenses/ || true
+          mkdir -p ~/.buildozer/android/platform/android-sdk/tools/bin
+          wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
+          unzip cmdline-tools.zip
+          mkdir -p ~/.buildozer/android/platform/android-sdk/cmdline-tools/latest
+          mv cmdline-tools/* ~/.buildozer/android/platform/android-sdk/cmdline-tools/latest/ || true
+          rm -rf cmdline-tools.zip
+
+          # Buildozer kutayotgan eski tools/bin yo'liga sdkmanager simlink yaratamiz
+          ln -s ~/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager ~/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager || true
+
+      - name: Accept All Android Licenses
+        run: |
+          yes | ~/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
       - name: Prepare buildozer.spec
         run: |
