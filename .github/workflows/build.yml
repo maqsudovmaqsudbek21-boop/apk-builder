@@ -24,21 +24,24 @@ jobs:
           sudo apt-get install -y ccache git libffi-dev libssl-dev python3-dev zip unzip openjdk-17-jdk aidl autoconf libtool pkg-config zlib1g-dev libncurses6 libtinfo6 cmake
           pip install "cython<3.0.0" buildozer kivy
 
-      - name: Set up Android SDK & Accept All Licenses
+      - name: Set up Android SDK and Accept Licenses
         uses: android-actions/setup-android@v3
 
-      - name: Accept All Android Licenses
+      - name: Setup Buildozer SDK Licenses
         run: |
+          mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
           yes | sdkmanager --licenses || true
+          cp -r $ANDROID_HOME/licenses/* ~/.buildozer/android/platform/android-sdk/licenses/ || true
 
-      - name: Generate buildozer.spec if not exists
+      - name: Prepare buildozer.spec
         run: |
           if [ ! -f buildozer.spec ]; then
             buildozer init
           fi
           sed -i 's/android.accept_sdk_licenses = False/android.accept_sdk_licenses = True/g' buildozer.spec
-          sed -i 's/# android.ndk_version = .*/android.ndk_version = 25b/g' buildozer.spec
+          sed -i 's/# android.build_tools_version = .*/android.build_tools_version = 33.0.2/g' buildozer.spec
           sed -i 's/# android.api = .*/android.api = 33/g' buildozer.spec
+          sed -i 's/# android.ndk_version = .*/android.ndk_version = 25b/g' buildozer.spec
 
       - name: Build APK with Buildozer
         run: |
